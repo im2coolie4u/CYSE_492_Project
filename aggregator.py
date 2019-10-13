@@ -1,6 +1,7 @@
 import sys
 import os
 import csv
+import re
 
 #for Kaggle:
 #use email: billkelly694@gmail.com
@@ -8,8 +9,18 @@ import csv
 #user: billkelly694
 #name: Bill Kelly
 
+def check_exist(filename):
+    if not path.exists(filename):
+        return False
+    else:
+        return True
+
 def file_grabber():
     inputs = sys.argv
+    user_file = input("please enter a unique file name:")
+    if '.csv' not in user_file:
+        print("incorrect format specified, appending '.csv',\n Ctrl+C if this is incorrect")
+        user_file = user_file + '.csv'
     for i in range(len(inputs)):
         print(inputs[i])
     if len(inputs) < 2:
@@ -19,23 +30,34 @@ def file_grabber():
         print("HELP SCREEN HERE!")
     with open(input_file) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter = ',')
-        row_count = 0
-        col_count = 0
         line = 0
-        user_list = []
         user_dupes_count = 0
-        user_dupes = []
         for row in csv_file:
-            row = row.join(',')
             if line == 0:
+                print("Options are: " + row)
+                contents = re.findall(r'(?!")(\w+)', row)
                 print("Options are: ")
-                for col in row:
-                    print("[" + col +  "]" + ": ")
-            line += 1
-                #print("row = " + str(row_count) + ", " + str(col_count) + ".")
+                for i in range(len(contents)):
+                    print('['+ str(i) + ']: ' + contents[i])
+                get_selection = input("Please enter which columns you would like added \nto your file " + user_file + "; \nPlease use commas(,) to separate the inputs:")
+                print("Adding the following database contents:")
+                selection_enum = get_selection.split(',')
+                selection_list = []
+                for j in selection_enum:
+                    print('[' + str(j) + ']' + contents[int(j)])
+                    selection_list.append(contents[int(j)])
+                    write_file(selection_list, input_file, user_file)
+                        pass
+                line += 1
+        #print("row = " + str(row_count) + ", " + str(col_count) + ".")
         print('Processed ' + str(row_count + 1) + ' lines.')
-        print(line)
-        print(user_dupes_count)
+
+def write_file(columns, in_file, out_file):
+    header = columns
+    print(header)
+    with open(in_file, 'w', newline='')) as csv_file:
+        csv_write = csv.writer(csv_file, delimiter=',', quotechar = '"', quoting=csv.QUOTE_MINIMAL)
+
 
 
 def main():
