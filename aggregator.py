@@ -55,9 +55,13 @@ def file_grabber():
 def write_file(columns, in_file, out_file):
     header = columns
     print(header)
+    exists = check_exist(out_file)
     with open(in_file, 'w', newline='')) as csv_file:
         csv_write = csv.writer(csv_file, delimiter=',', quotechar = '"', quoting=csv.QUOTE_MINIMAL)
-
+        if exists == False:
+            csv_write.writerow(columns)
+        else:
+            csv.write.writerow()
 
 
 def main():
