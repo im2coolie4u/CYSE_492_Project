@@ -47,7 +47,7 @@ def file_grabber():
                     print('[' + str(j) + ']' + contents[int(j)])
                     selection_list.append(contents[int(j)])
                     write_file(selection_list, input_file, user_file)
-                        pass
+                    pass
                 line += 1
         #print("row = " + str(row_count) + ", " + str(col_count) + ".")
         print('Processed ' + str(row_count + 1) + ' lines.')
@@ -56,7 +56,7 @@ def write_file(columns, in_file, out_file):
     header = columns
     print(header)
     exists = check_exist(out_file)
-    with open(in_file, 'w', newline='')) as csv_file:
+    with open(in_file, 'w', newline='') as csv_file:
         csv_write = csv.writer(csv_file, delimiter=',', quotechar = '"', quoting=csv.QUOTE_MINIMAL)
         if exists == False:
             csv_write.writerow(columns)
