@@ -1,16 +1,19 @@
+
 import argparse
-import nltk
-from nltk.corpus import stopwords
+from nltk.classify import NaiveBayesClassifier
+from nltk.corpus import stopwords, subjectivity
 from nltk.tokenize import word_tokenize
 from nltk.probability import FreqDist
+from nltk.sentiment import SentimentAnalyzer
+from nltk.sentiment.util import *
 import os
 import pandas as pd
 import re
 import string
-import sys
+from progressbar import ProgressBar
 def csv_search():
     '''
-    looks for .csvs exclusively in the current working directory
+    looks for .csvs in the current working directory
     and returns them to main
     Args:
         None
@@ -24,7 +27,8 @@ def csv_search():
     for i in dir_walk:
         line_count += 1
         print(str(line_count) + ' ' + i)
-    return dir_walk
+    selection, num_choices = csv_select(dir_walk)
+    return dir_walk, num_choices
 
 
 def csv_select(dir_walk):
@@ -32,9 +36,12 @@ def csv_select(dir_walk):
     selection = input("SELECTION: ")
     if ',' in selection:
         choices = selection.split(',')
-        print(choices)
+        num_choices = len(choices)
+        return choices, num_choices
+    else:
+        return selection, 1
 
-def find_content(tgt_files):
+def find_content(tgt_files, num_choices):
     '''
     takes a list of files in as input and then reads
     them, producing two things, 'details' which is the date,
@@ -47,19 +54,23 @@ def find_content(tgt_files):
         details(generator object): see above
         content(generator object): see above
     '''
-    fields = ['content']
-    file = [file for file in tgt_files]
-    df = pd.read_csv('articles1.csv', skipinitialspace=True, usecols=fields)
-    for i in df['content']:
-        light_analysis(i)
-    read_csv = (pd.read_csv(csv_file, skipinitialspace=True, usecols=fields)
-                for csv_file in file)
-    details = (details[['date','publication','author','content']]
-                for details in read_csv if "," not in details)
+    pbar = ProgressBar()
+    article_count = 0
+    for file in pbar(tgt_files):
+        data = pd.read_csv(file)
+        df = pd.read_csv(file, skipinitialspace=True, delimiter = ',',
+            usecols=['content'])
+        for i in df['content']:
+            freq_analysis(str(i), file)
+        article_count += 1
+    #read_csv = (pd.read_csv(csv_file, skipinitialspace=True, delimiter =',',
+                    #usecols=fields)for csv_file in file)
+    #details = (details[['date','publication','author','content']]
+                #for details in read_csv if "," not in details)
     return
 
 
-def light_analysis(text):
+def freq_analysis(text, file):
     '''
     Takes content, like a news story, as input
     then looks at frequency analysis and returns them to
@@ -70,11 +81,23 @@ def light_analysis(text):
     Returns:
         maybe a list of the 25 most_common words
     '''
+    mode = 'w'
+    pbar = ProgressBar()
     not_letters = ["'",'"',',','.','?','!',':',';']
     word_tokens = word_tokenize(text)
     stop_words = set(stopwords.words('english'))
     stripped = remove_stopwords(word_tokens, stop_words)
     freq = FreqDist(stripped)
+    file = file[:-4] + '.txt'
+    if os.path.exists(file):
+        mode = 'a'
+    else:
+        mode = 'w'
+    with open(file, mode) as f:
+        for i in pbar(freq.most_common(20)):
+            f.write(str(i[0]) +' : ' + str(i[1]) + '\n')
+
+
     return freq
 
 
@@ -94,10 +117,7 @@ def argparser(passed_args=None):
 
 
 def main(passed_args=None):
-    tgt_files = csv_search()
-    selector = csv_select(tgt_files)
-    find_content(tgt_files)
-
-
+    tgt_files, num_choices = csv_search()
+    content = find_content(tgt_files, num_choices)
 if __name__ == '__main__':
     main()
