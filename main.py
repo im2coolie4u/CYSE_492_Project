@@ -96,6 +96,7 @@ def freq_analysis(text, file):
     with open(file, mode) as f:
         for i in pbar(freq.most_common(20)):
             f.write(str(i[0]) +' : ' + str(i[1]) + '\n')
+        f.write('\n' + '-'*80 + '\n')
 
 
     return freq
